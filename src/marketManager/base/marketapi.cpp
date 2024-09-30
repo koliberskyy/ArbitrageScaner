@@ -34,16 +34,16 @@ std::vector<Spred> MarketApi::getSpredVec(std::list<key_type> &&tokens, std::sha
     std::vector<Spred> reply;
 
     for(auto &it:tokens){
-        auto price1 = market1->getPriceMap()->value(it, -1);
-        auto price2 = market2->getPriceMap()->value(it, -1);
-        if(price1 > 0 && price2 > 0 && price1 != price2){
+        auto price1 = market1->getAskMap()->value(it, -1);
+        auto price2 = market2->getBidMap()->value(it, -1);
+        if(price1 > 0 && price2 > 0 && price1 < price2){
             reply.emplace_back(market1->host, price1, market2->host, price2, it,
-                               market1->getVolumeMap()->value(it,-1),
-                               market2->getVolumeMap()->value(it,-1));
+                               market1->getAskQtyMap()->value(it,-1),
+                               market2->getBidQtyMap()->value(it,-1));
         }
     }
     for(auto &new_it : reply){
-        for (const auto old_it : prev){
+        for (const auto &old_it : prev){
             if(new_it == old_it){
                 new_it.confimCount = old_it.confimCount + 1;
                 new_it.beginTime = old_it.beginTime;
@@ -75,7 +75,7 @@ void MarketApi::sendGetRequest(QString &&method, QString &&query, QString &&user
     sendGetRequest(QNetworkRequest(std::move(url)));
 }
 
-void MarketApi::set(QJsonArray &&tokens)
+void MarketApi::setTickers(QJsonArray &&tokens)
 {
     tokenList.clear();
     volumeMap.clear();
@@ -87,11 +87,33 @@ void MarketApi::set(QJsonArray &&tokens)
         symbolFilter(&symbol);
         auto volume = obj[jsonArgNames.volume].toString().toDouble();
 
+
         if(symbol.endsWith(baseToken)
                 && volume > minVolume
                 && volume < maxVolume){
+
             tokenList.emplace_back(symbol);
+
             volumeMap.emplace(symbol, volume);
+
+            auto bid =  obj[jsonArgNames.bid].toString().toDouble();
+            bidMap.emplace(symbol, bid);
+
+            auto ask = obj[jsonArgNames.ask].toString().toDouble();
+            askMap.emplace(symbol, ask);
+
+            auto bidQty = obj[jsonArgNames.bidQty].toString();
+            if(!bidQty.isEmpty())
+                bidQtyMap.emplace(symbol, bidQty.toDouble() * bid);
+            else
+                bidQtyMap.emplace(symbol, 0);
+
+            auto askQty = obj[jsonArgNames.askQty].toString();
+            if(!askQty.isEmpty())
+                askQtyMap.emplace(symbol, askQty.toDouble() * ask);
+            else
+                askQtyMap.emplace(symbol, 0);
+
             priceMap.emplace(std::move(symbol), obj[jsonArgNames.lastPrice].toString().toDouble());
         }
     }
@@ -100,6 +122,18 @@ void MarketApi::set(QJsonArray &&tokens)
     }
 
     setUpdated();
+}
+
+void MarketApi::setCurrencies(QJsonArray &&currencies)
+{
+    for(const auto &it : currencies){
+        auto obj = it.toObject();
+        auto symbol = obj[jsonArgNames.symbol].toString();
+        symbolFilter(&symbol);
+        if(symbol.endsWith(baseToken)){
+            currenciesMap.emplace(std::move(symbol), obj);
+        }
+    }
 }
 
 void MarketApi::sendGetRequest(QNetworkRequest &&request)

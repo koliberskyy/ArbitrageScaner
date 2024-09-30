@@ -25,34 +25,28 @@ struct JsonArgNames{
     const key_type symbol{"symbol"};
     const key_type lastPrice{"lastPrice"};
     const key_type volume{"volume"};
+    const key_type bid{"bitPrice"};
+    const key_type ask{"askPrice"};
+    const key_type bidQty{"bitPrice"};
+    const key_type askQty{"askPrice"};
 };
 
 struct TAGS {
-        inline static const key_type TOKENLIST{"TOKENLIST_TAG"};
+    inline static const key_type TOKENLIST{"TOKENLIST_TAG"};
+    inline static const key_type CURRENCIES{"CURRENCIES_TAG"};
 };
 
 struct Spred{
     explicit Spred(const QString &market1, double price1, const QString &market2, double price2, const QString &token, double volume1, double volume2){
-        if(price1 < price2){
-            market_from = market1;
-            price_from = price1;
+        market_from = market1;
+        price_from = price1;
 
-            market_to = market2;
-            price_to = price2;
+        market_to = market2;
+        price_to = price2;
 
-            volume_from = volume1;
-            volume_to = volume2;
-        }
-        else{
-            market_from = market2;
-            price_from = price2;
+        volume_from = volume1;
+        volume_to = volume2;
 
-            market_to = market1;
-            price_to = price1;
-
-            volume_from = volume2;
-            volume_to = volume1;
-        }
         setSpred();
         symbol = token;
     }
@@ -111,6 +105,22 @@ public:
     {
         return &priceMap;
     }
+    auto getBidMap() const
+    {
+        return &bidMap;
+    }
+    auto getAskMap() const
+    {
+        return &askMap;
+    }
+    auto getBidQtyMap() const
+    {
+        return &bidQtyMap;
+    }
+    auto getAskQtyMap() const
+    {
+        return &askQtyMap;
+    }
     auto getVolumeMap() const
     {
         return &volumeMap;
@@ -120,21 +130,32 @@ public:
         return updated;
     }
 
+    //const QString getCurrenciesMap() const = 0 ;
+
     static std::list<key_type> getCrossTokens(std::list<key_type> first, std::list<key_type> second);
     static std::vector<Spred> getSpredVec(std::list<key_type> &&tokens, std::shared_ptr<MarketApi> market1, std::shared_ptr<MarketApi> market2, const std::vector<Spred> &prev);
 
 public slots:
     virtual void updateTokenList() = 0;
-    virtual void updatePriceMap() = 0;
+    virtual void updateCurrencies() = 0;
     virtual void updateVolumeMap() = 0;
 
 protected:
     std::list<key_type> tokenList;              //список токенов, торуемых на бирже
     QHash<key_type, value_type> priceMap;   //хеш-мап пар токен-рыночная цена
+
+    QHash<key_type, value_type> bidMap;
+    QHash<key_type, value_type> askMap;
+
+    QHash<key_type, value_type> bidQtyMap;
+    QHash<key_type, value_type> askQtyMap;
+
+    QHash<key_type, QJsonObject> currenciesMap;
     QHash<key_type, value_type> volumeMap;  //хеш-мап пар токен-объем торгов за сутки
+
     const QString baseToken = "USDT";
-    const double minVolume = 100'000.0;
-    const double maxVolume = 1'000'000'000'000.0;
+    const double minVolume = 250'000.0;
+    const double maxVolume = 1'000'000'000'000'000.0;
 
     const QString host;
     std::shared_ptr<QNetworkAccessManager> netManager;
@@ -145,8 +166,9 @@ protected:
     void sendGetRequest(QString &&method, QString &&query, QString &&userInfo = "");
 
     const JsonArgNames jsonArgNames;
-    void set(QJsonArray &&tokens);
-    void setUpdated(bool trg = true){updated = true;}
+    void setTickers(QJsonArray &&tokens);
+    void setCurrencies(QJsonArray &&currencies);
+    void setUpdated(bool trg = true){updated = trg;}
 
 protected slots:
     void replyFinished();

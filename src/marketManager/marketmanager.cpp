@@ -46,6 +46,7 @@ void MarketManager::findSpred()
         auto curr = markets.begin();
         auto checkable = curr;
 
+        //linear scan
         while (curr != markets.end()){
             checkable = curr;
             ++checkable;
@@ -62,19 +63,38 @@ void MarketManager::findSpred()
             ++curr;
         }
 
+        //reverse scan
+        auto rcurr = markets.rbegin();
+        auto rcheckable = rcurr;
+        while (rcurr != markets.rend()){
+            rcheckable = rcurr;
+            ++rcheckable;
+            while(rcheckable != markets.rend()){
+                if(rcurr != rcheckable){
+                    auto crossTokens = MarketApi::getCrossTokens((*rcurr)->getAvaibleTokens(), (*rcheckable)->getAvaibleTokens());
+                    auto spred = MarketApi::getSpredVec(std::move(crossTokens), *rcurr, *rcheckable, spredVec);
+                    for (auto &it : spred){
+                        reply.emplace_back(it);
+                    }
+                }
+                ++rcheckable;
+            }
+            ++rcurr;
+        }
+
         if(!reply.empty()){
-            std::sort(reply.begin(), reply.end(), [](Spred s1, Spred s2){return s1.spred > s2.spred;});
+            std::sort(reply.begin(), reply.end(), [](Spred s1, Spred s2){return s1.spred < s2.spred;});
 
             auto it = reply.begin();
 
-            while(it->spred > 6.0 && it != reply.end()){
+            while(it->spred < 1.0 && it != reply.end()){
                 ++it;
             }
             reply.erase(reply.begin(), it);
 
             it = reply.begin();
 
-            while(it->spred > 2.0 && it != reply.end()){
+            while(it->spred < 100.0 && it != reply.end()){
                 ++it;
             }
 
@@ -89,7 +109,6 @@ void MarketManager::findSpred()
             // file.close();
             // std::cout << "done" << QDateTime::currentDateTime().toString(" dd.MM-hh:mm.ss").toStdString() <<"\n";
 
-            std::reverse(reply.begin(), reply.end());
             std::sort(reply.begin(), reply.end(), [](Spred s1, Spred s2){return s1.confimCount < s2.confimCount;});
 
 

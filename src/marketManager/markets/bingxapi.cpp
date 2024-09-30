@@ -2,7 +2,7 @@
 
 BingXApi::BingXApi(std::shared_ptr<QNetworkAccessManager> __netManager, QObject *parent)
     :   MarketApi("https://open-api.bingx.com",
-        {"symbol", "lastPrice", "quoteVolume"},
+        {"symbol", "lastPrice", "quoteVolume", "bidPrice", "askPrice", "bidQty", "askQty"},
         __netManager,
         parent)
 {
@@ -14,7 +14,7 @@ void BingXApi::updateTokenList()
 
 }
 
-void BingXApi::updatePriceMap()
+void BingXApi::updateCurrencies()
 {
 
 }
@@ -29,7 +29,7 @@ void BingXApi::parceReply(QNetworkRequest &&request, QNetworkReply::NetworkError
     auto info = request.url().userInfo();
 
     if(info == TAGS::TOKENLIST){
-        set(QJsonDocument::fromJson(reply).object()["data"].toArray());
+        setTickers(QJsonDocument::fromJson(reply).object()["data"].toArray());
         emit parceComplete(info);
     }
 }

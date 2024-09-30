@@ -38,7 +38,9 @@ void ArbitrageScaner::sendResult()
 void ArbitrageScaner::printResult()
 {
     auto spred = markManager->getSpredVec();
+
     if(!spred->empty()){
+
         std::cout << "\x1B[2J\x1B[H";
         QString message(QDateTime::currentDateTime().toString("hh:mm:ss - dd.MM.yyyy"));
         message.append("\n\n");
