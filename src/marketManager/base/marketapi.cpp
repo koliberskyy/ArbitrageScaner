@@ -29,7 +29,7 @@ std::list<key_type> MarketApi::getCrossTokens(std::list<key_type> first, std::li
     return std::move(first);
 }
 
-std::vector<Spred> MarketApi::getSpredVec(std::list<key_type> &&tokens, std::shared_ptr<MarketApi> market1, std::shared_ptr<MarketApi> market2)
+std::vector<Spred> MarketApi::getSpredVec(std::list<key_type> &&tokens, std::shared_ptr<MarketApi> market1, std::shared_ptr<MarketApi> market2, const std::vector<Spred> &prev)
 {
     std::vector<Spred> reply;
 
@@ -42,7 +42,19 @@ std::vector<Spred> MarketApi::getSpredVec(std::list<key_type> &&tokens, std::sha
                                market2->getVolumeMap()->value(it,-1));
         }
     }
+    for(auto &new_it : reply){
+        for (const auto old_it : prev){
+            if(new_it == old_it){
+                new_it.confimCount = old_it.confimCount + 1;
+                new_it.beginTime = old_it.beginTime;
+            }
+        }
+    }
 
+    for(auto &it : reply){
+        if(it.confimCount == 0)
+            it.beginTime = QDateTime::currentDateTime();
+    }
 
     return reply;
 }

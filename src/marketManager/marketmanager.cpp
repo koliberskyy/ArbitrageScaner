@@ -52,8 +52,8 @@ void MarketManager::findSpred()
             while(checkable != markets.end()){
                 if(curr != checkable){
                     auto crossTokens = MarketApi::getCrossTokens((*curr)->getAvaibleTokens(), (*checkable)->getAvaibleTokens());
-                    auto spredVec = MarketApi::getSpredVec(std::move(crossTokens), *curr, *checkable);
-                    for (auto &it : spredVec){
+                    auto spred = MarketApi::getSpredVec(std::move(crossTokens), *curr, *checkable, spredVec);
+                    for (auto &it : spred){
                         reply.emplace_back(it);
                     }
                 }
@@ -81,13 +81,17 @@ void MarketManager::findSpred()
             reply.erase(it, reply.end());
 
 
-            QFile file("spred.txt");
-            file.open(QIODevice::WriteOnly | QIODevice::Text);
-            for(auto &it : reply){
-                file.write(it.toQString().toUtf8());
-            }
-            file.close();
-            std::cout << "done" << QDateTime::currentDateTime().toString(" dd.MM-hh:mm.ss").toStdString() <<"\n";
+            // QFile file("spred.txt");
+            // file.open(QIODevice::WriteOnly | QIODevice::Text);
+            // for(auto &it : reply){
+            //     file.write(it.toQString().toUtf8());
+            // }
+            // file.close();
+            // std::cout << "done" << QDateTime::currentDateTime().toString(" dd.MM-hh:mm.ss").toStdString() <<"\n";
+
+            std::reverse(reply.begin(), reply.end());
+            std::sort(reply.begin(), reply.end(), [](Spred s1, Spred s2){return s1.confimCount < s2.confimCount;});
+
 
             spredVec = std::move(reply);
             emit spredUpdated();

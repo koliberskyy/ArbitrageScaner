@@ -11,13 +11,15 @@ TelegramApi::TelegramApi(std::shared_ptr<QNetworkAccessManager> __netManager, QO
 void TelegramApi::sendMessage(const QString &message)
 {
     auto copy = message;
-    sendGetRequest("/sendMessage?chat_id=-1001964821237&text=", std::move(copy), "SNDMSG");
+    sendGetRequest("/sendMessage?chat_id=615961766&text=", std::move(copy), "SNDMSG");
 }
 
 void TelegramApi::deleteLastMessage()
 {
-    auto tmp = QString::fromStdString(std::to_string(lastMessageId));
-    sendGetRequest("/deleteMessage?chat_id=-1001964821237&message_id=", std::move(tmp), "DELMSG");
+    if(lastMessageId != 0){
+        auto tmp = QString::fromStdString(std::to_string(lastMessageId));
+        sendGetRequest("/deleteMessage?chat_id=615961766&message_id=", std::move(tmp), "DELMSG");
+    }
 
 }
 
@@ -27,8 +29,8 @@ void TelegramApi::parceReply(QNetworkRequest &&request, QNetworkReply::NetworkEr
     auto info = request.url().userInfo();
     if(info == "SNDMSG")
         lastMessageId = QJsonDocument::fromJson(reply).object()["result"].toObject()["message_id"].toInt();
-    else if(info == "DELMSG")
-    deleteLastMessage();
+    //else if(info == "DELMSG")
+      //  deleteLastMessage();
 }
 void TelegramApi::sendGetRequest(QNetworkRequest &&request)
 {

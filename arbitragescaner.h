@@ -28,6 +28,7 @@ private:
 private slots:
     void scan();
     void sendResult();
+    void printResult();
     void timerChanged();
 signals:
 

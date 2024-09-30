@@ -54,7 +54,6 @@ struct Spred{
             volume_to = volume1;
         }
         setSpred();
-
         symbol = token;
     }
     void setSpred(){
@@ -77,15 +76,22 @@ struct Spred{
     double price_to;
     double spred;
     QString symbol;
-
+    int confimCount{0};
+    QDateTime beginTime;
     double volume_from;
     double volume_to;
 
     auto toQString()const {return QString(symbol +": " + getMarketNaame(market_from) + "->" + getMarketNaame(market_to) + "\n" +
                                           QString::fromStdString(std::to_string(price_from)) + "->" + QString::fromStdString(std::to_string(price_to)) + "\n" +
                                           QString::fromStdString(std::to_string(volume_from)) + "->" + QString::fromStdString(std::to_string(volume_to)) + "\n" +
-                                            "spred: " + QString::fromStdString(std::to_string(spred)) +
+                                            "spred: " + QString::fromStdString(std::to_string(spred)) + "\n" +
+                                            "Подтверждений: " + QString::fromStdString(std::to_string(confimCount)) + "\n" +
+                                            "Время жизни: " + QString::fromStdString(std::to_string(beginTime.secsTo(QDateTime::currentDateTime()))) + " sec" +
                                             "\n----------------------\n");}
+
+    bool operator ==(const Spred &other){
+        return other.market_from == market_from && other.market_to == market_to && other.symbol == symbol;
+    }
 };
 
 /*!
@@ -115,7 +121,7 @@ public:
     }
 
     static std::list<key_type> getCrossTokens(std::list<key_type> first, std::list<key_type> second);
-    static std::vector<Spred> getSpredVec(std::list<key_type> &&tokens, std::shared_ptr<MarketApi> market1, std::shared_ptr<MarketApi> market2);
+    static std::vector<Spred> getSpredVec(std::list<key_type> &&tokens, std::shared_ptr<MarketApi> market1, std::shared_ptr<MarketApi> market2, const std::vector<Spred> &prev);
 
 public slots:
     virtual void updateTokenList() = 0;
