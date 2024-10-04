@@ -17,6 +17,9 @@
 #include <list>
 #include <vector>
 
+//#define SPOT //FUTURES
+
+
 
 using value_type = double;
 using key_type = QString;
@@ -61,6 +64,7 @@ struct Spred{
         marketHost.remove(".com");
         marketHost.remove("https://open-api.");
         marketHost.remove(".ws");
+        marketHost.replace("huobi.pro", "htx");
 
         return marketHost;
     }
@@ -134,7 +138,7 @@ public:
 
     static std::list<key_type> getCrossTokens(std::list<key_type> first, std::list<key_type> second);
     static std::vector<Spred> getSpredVec(std::list<key_type> &&tokens, std::shared_ptr<MarketApi> market1, std::shared_ptr<MarketApi> market2, const std::vector<Spred> &prev);
-
+    static double json_toDouble(QJsonValue &&val);
 public slots:
     virtual void updateTokenList() = 0;
     virtual void updateCurrencies() = 0;
@@ -154,7 +158,7 @@ protected:
     QHash<key_type, value_type> volumeMap;  //хеш-мап пар токен-объем торгов за сутки
 
     const QString baseToken = "USDT";
-    const double minVolume = 250'000.0;
+    const double minVolume = -1;//250'000.0;
     const double maxVolume = 1'000'000'000'000'000.0;
 
     const QString host;
@@ -181,7 +185,9 @@ private:
 
     template<typename StringType>
     void symbolFilter(StringType *symbol){
-        for(auto it = symbol->begin(); it != symbol->end(); ++it){
+        if(symbol->isLower())
+            *symbol = symbol->toUpper();
+        for(auto it = symbol->begin(); it != symbol->end(); ++it){                
             if(*it == '-' || *it == '_'){
                 auto next = it + 1;
                 symbol->erase(it, next);

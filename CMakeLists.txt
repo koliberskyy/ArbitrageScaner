@@ -44,6 +44,8 @@ add_executable(
   src/marketManager/markets/bingxapi.cpp
   src/marketManager/markets/gateioapi.h
   src/marketManager/markets/gateioapi.cpp
+  src/marketManager/markets/htxapi.h
+  src/marketManager/markets/htxapi.cpp
 
   src/telegram/telegramapi.h
   src/telegram/telegramapi.cpp

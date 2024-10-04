@@ -59,6 +59,21 @@ std::vector<Spred> MarketApi::getSpredVec(std::list<key_type> &&tokens, std::sha
     return reply;
 }
 
+double MarketApi::json_toDouble(QJsonValue &&val)
+{
+    auto reply{0.0};
+    if(!val.isUndefined()){
+        if(val.isString())
+            reply = val.toString().toDouble();
+        else if(val.isDouble())
+            reply = val.toDouble();
+
+        return reply;
+    }
+    else
+        return 0.0;
+}
+
 void MarketApi::sendGetRequest(const QString &method, const QString &query, const QString &userInfo)
 {
     QUrl url(host + method + query);
@@ -84,37 +99,25 @@ void MarketApi::setTickers(QJsonArray &&tokens)
     for(auto it = tokens.begin(); it != tokens.end(); it++){
         auto obj = it->toObject();
         auto symbol = obj[jsonArgNames.symbol].toString();
-        symbolFilter(&symbol);
-        auto volume = obj[jsonArgNames.volume].toString().toDouble();
 
+        symbolFilter(&symbol);
+        auto volume = json_toDouble(obj[jsonArgNames.volume]);
 
         if(symbol.endsWith(baseToken)
-                && volume > minVolume
-                && volume < maxVolume){
+                && volume > minVolume){
 
             tokenList.emplace_back(symbol);
-
             volumeMap.emplace(symbol, volume);
 
-            auto bid =  obj[jsonArgNames.bid].toString().toDouble();
+            auto bid = json_toDouble(obj[jsonArgNames.bid]);
             bidMap.emplace(symbol, bid);
+            bidQtyMap.emplace(symbol, json_toDouble(obj[jsonArgNames.bidQty]) * bid);
 
-            auto ask = obj[jsonArgNames.ask].toString().toDouble();
+            auto ask = json_toDouble(obj[jsonArgNames.ask]);
             askMap.emplace(symbol, ask);
+            askQtyMap.emplace(symbol, json_toDouble(obj[jsonArgNames.askQty]) * ask);
 
-            auto bidQty = obj[jsonArgNames.bidQty].toString();
-            if(!bidQty.isEmpty())
-                bidQtyMap.emplace(symbol, bidQty.toDouble() * bid);
-            else
-                bidQtyMap.emplace(symbol, 0);
-
-            auto askQty = obj[jsonArgNames.askQty].toString();
-            if(!askQty.isEmpty())
-                askQtyMap.emplace(symbol, askQty.toDouble() * ask);
-            else
-                askQtyMap.emplace(symbol, 0);
-
-            priceMap.emplace(std::move(symbol), obj[jsonArgNames.lastPrice].toString().toDouble());
+            priceMap.emplace(std::move(symbol), json_toDouble(obj[jsonArgNames.lastPrice]));
         }
     }
     if(!tokenList.empty()){

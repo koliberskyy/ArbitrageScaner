@@ -15,6 +15,9 @@ MarketManager::MarketManager(std::shared_ptr<QNetworkAccessManager> __netManager
     markets.emplace_back(new MexcApi(netManager));
     markets.emplace_back(new BingXApi(netManager));
     markets.emplace_back(new GateIoApi(netManager));
+#ifdef SPOT
+    markets.emplace_back(new HtxApi(netManager));
+#endif
 }
 
 void MarketManager::updateTokens()
@@ -87,7 +90,7 @@ void MarketManager::findSpred()
 
             auto it = reply.begin();
 
-            while(it->spred < 1.0 && it != reply.end()){
+            while(it->spred < 0.5 && it != reply.end()){
                 ++it;
             }
             reply.erase(reply.begin(), it);

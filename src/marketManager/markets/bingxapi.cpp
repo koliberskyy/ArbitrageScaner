@@ -10,8 +10,11 @@ BingXApi::BingXApi(std::shared_ptr<QNetworkAccessManager> __netManager, QObject 
 }
 void BingXApi::updateTokenList()
 {
+#ifdef SPOT
+    sendGetRequest("/openApi/spot/v1/ticker/24hr", "", TAGS::TOKENLIST);
+#else
     sendGetRequest("/openApi/swap/v2/quote/ticker", "", TAGS::TOKENLIST);
-
+#endif
 }
 
 void BingXApi::updateCurrencies()

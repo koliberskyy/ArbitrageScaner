@@ -2,7 +2,12 @@
 
 GateIoApi::GateIoApi(std::shared_ptr<QNetworkAccessManager> __netManager, QObject *parent)
     :   MarketApi("https://api.gateio.ws",
-        {"currency_pair", "last", "quote_volume", "highest_bid", "lowest_ask", "highest_size", "lowest_size"},
+#ifdef SPOT
+        {"currency_pair",
+#else
+        {"contract",
+#endif
+                 "last", "quote_volume", "highest_bid", "lowest_ask", "highest_size", "lowest_size"},
         __netManager,
         parent)
 {
@@ -10,7 +15,11 @@ GateIoApi::GateIoApi(std::shared_ptr<QNetworkAccessManager> __netManager, QObjec
 }
 void GateIoApi::updateTokenList()
 {
+#ifdef SPOT
     sendGetRequest("/api/v4/spot/tickers", "", TAGS::TOKENLIST);
+#else
+    sendGetRequest("/api/v4/futures/usdt/tickers", "", TAGS::TOKENLIST);
+#endif
 }
 
 void GateIoApi::updateCurrencies()

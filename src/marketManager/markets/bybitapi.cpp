@@ -11,7 +11,11 @@ BybitApi::BybitApi(std::shared_ptr<QNetworkAccessManager> __netManager, QObject 
 
 void BybitApi::updateTokenList()
 {
+#ifdef SPOT
     sendGetRequest("/v5/market/tickers", "?category=spot", TAGS::TOKENLIST);
+#else
+    sendGetRequest("/v5/market/tickers", "?category=linear", TAGS::TOKENLIST);
+#endif
 }
 
 void BybitApi::updateCurrencies()

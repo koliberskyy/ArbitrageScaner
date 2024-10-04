@@ -10,6 +10,7 @@
 #include "mexcapi.h"
 #include "bingxapi.h"
 #include "gateioapi.h"
+#include "htxapi.h"
 
 class MarketManager : public QObject
 {
